@@ -6,6 +6,7 @@ on:
       - "**"
     tags-ignore:
       - "v*" # Ignore tags that start with "v" (e.g. v1.0.0) because they are handled by release-build.yml
+    workflow_dispatch:
 
 jobs:
   release:
