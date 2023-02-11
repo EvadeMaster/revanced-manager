@@ -1,22 +1,38 @@
 name: Super linter
 
 on:
-  push:
-    branches: [ "github_actions" ]
   pull_request:
-    branches: [ "github_actions" ]
+    branches:
+      - "**"
+      
 jobs:
   run-lint:
     runs-on: ubuntu-latest
     steps:
       - name: 📜 Checkout code
         uses: actions/checkout@v3
+        
+      - name: 🛠️ Set up JDK 12
+        uses: actions/setup-java@v3
         with:
-          # Full git history is needed to get a proper list of changed files within `super-linter`
-          fetch-depth: 0
+          java-version: '12'
+          distribution: 'zulu'
+
+      - name: 🛠️ Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          
+      - name: 🛠️ Set up project
+        run: flutter pub get
+        
+      - name: 🧑‍💻 Generate files with Builder
+        run: flutter packages pub run build_runner build --delete-conflicting-outputs
 
       - name: 🤖 Task Force Linter
-        uses: github/super-linter@v4
+        uses: EvadeMaster/dartanalyzer-annotations-action@abf84616e000d5f4d1a4a52a82ed7f223e2e39f9
         env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: "github_actions"
+          GITHUB_TOKEN: ${{ github.TOKEN }}
+        with:
+          check_name: 'Check code style'
+          commit_sha: ${{ github.event.pull_request.head.sha }}
