@@ -8,7 +8,6 @@ import 'package:revanced_manager/ui/widgets/homeView/available_updates_card.dart
 import 'package:revanced_manager/ui/widgets/homeView/installed_apps_card.dart';
 import 'package:revanced_manager/ui/widgets/homeView/latest_commit_card.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_chip.dart';
-import 'package:revanced_manager/ui/widgets/shared/custom_sliver_app_bar.dart';
 import 'package:stacked/stacked.dart';
 
 class HomeView extends StatelessWidget {
@@ -27,14 +26,14 @@ class HomeView extends StatelessWidget {
           onRefresh: () => model.forceRefresh(context),
           child: CustomScrollView(
             slivers: <Widget>[
-              CustomSliverAppBar(
-                isMainView: true,
+              SliverAppBar.large(
                 title: I18nText(
                   'homeView.widgetTitle',
                   child: Text(
                     '',
                     style: GoogleFonts.inter(
-                      color: Theme.of(context).textTheme.headline6!.color,
+                      color: Theme.of(context).textTheme.titleLarge!.color,
+                      fontSize: 32,
                     ),
                   ),
                 ),
@@ -48,7 +47,11 @@ class HomeView extends StatelessWidget {
                         'homeView.updatesSubtitle',
                         child: Text(
                           '',
-                          style: Theme.of(context).textTheme.headline6,
+                          style: GoogleFonts.inter(
+                            color:
+                                Theme.of(context).textTheme.titleMedium!.color,
+                            fontSize: 24,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -61,27 +64,31 @@ class HomeView extends StatelessWidget {
                         'homeView.patchedSubtitle',
                         child: Text(
                           '',
-                          style: Theme.of(context).textTheme.headline6,
+                          style: GoogleFonts.inter(
+                            color:
+                                Theme.of(context).textTheme.titleMedium!.color,
+                            fontSize: 24,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         children: <Widget>[
-                          CustomChip(
+                          ChoiceChip(
                             label: I18nText('homeView.installed'),
-                            isSelected: !model.showUpdatableApps,
+                            selected: !model.showUpdatableApps,
                             onSelected: (value) {
                               model.toggleUpdatableApps(false);
                             },
                           ),
                           const SizedBox(width: 10),
-                          CustomChip(
+                          ChoiceChip(
                             label: I18nText('homeView.updatesAvailable'),
-                            isSelected: model.showUpdatableApps,
+                            selected: model.showUpdatableApps,
                             onSelected: (value) {
                               model.toggleUpdatableApps(true);
                             },
-                          )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 14),

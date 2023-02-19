@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/file.dart';
 import 'package:flutter_cache_manager/flutter_cache_manager.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
-import 'package:revanced_manager/ui/widgets/shared/custom_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class ContributorsCard extends StatefulWidget {
@@ -37,10 +36,12 @@ class _ContributorsCardState extends State<ContributorsCard> {
             ),
           ),
         ),
-        CustomCard(
+        Card(
+          elevation: 0,
+          color: Theme.of(context).colorScheme.surfaceVariant,
           child: GridView.builder(
             shrinkWrap: true,
-            padding: EdgeInsets.zero,
+            padding: const EdgeInsets.all(16.0),
             physics: const NeverScrollableScrollPhysics(),
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 6,

@@ -17,13 +17,17 @@ class ContributorsView extends StatelessWidget {
       builder: (context, model, child) => Scaffold(
         body: CustomScrollView(
           slivers: <Widget>[
-            CustomSliverAppBar(
+            SliverAppBar.large(
+              leading: IconButton(
+                onPressed: () => Navigator.of(context).pop(),
+                icon: const Icon(Icons.arrow_back),
+              ),
               title: I18nText(
                 'contributorsView.widgetTitle',
                 child: Text(
                   '',
                   style: GoogleFonts.inter(
-                    color: Theme.of(context).textTheme.headline6!.color,
+                    color: Theme.of(context).textTheme.titleLarge!.color,
                   ),
                 ),
               ),

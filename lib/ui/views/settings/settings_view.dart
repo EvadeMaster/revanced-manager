@@ -9,7 +9,6 @@ import 'package:revanced_manager/ui/widgets/settingsView/settings_advanced_secti
 import 'package:revanced_manager/ui/widgets/settingsView/settings_export_section.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/settings_info_section.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/settings_team_section.dart';
-import 'package:revanced_manager/ui/widgets/shared/custom_sliver_app_bar.dart';
 import 'package:stacked/stacked.dart';
 
 class SettingsView extends StatelessWidget {
@@ -25,14 +24,14 @@ class SettingsView extends StatelessWidget {
       builder: (context, model, child) => Scaffold(
         body: CustomScrollView(
           slivers: <Widget>[
-            CustomSliverAppBar(
-              isMainView: true,
+            SliverAppBar.large(
               title: I18nText(
                 'settingsView.widgetTitle',
                 child: Text(
                   '',
                   style: GoogleFonts.inter(
-                    color: Theme.of(context).textTheme.headline6!.color,
+                    color: Theme.of(context).textTheme.titleLarge!.color,
+                    fontSize: 32,
                   ),
                 ),
               ),

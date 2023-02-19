@@ -4,7 +4,6 @@ import 'package:revanced_manager/app/app.locator.dart';
 import 'package:revanced_manager/services/manager_api.dart';
 import 'package:revanced_manager/services/toast.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_card.dart';
-import 'package:revanced_manager/ui/widgets/shared/custom_material_button.dart';
 
 // ignore: must_be_immutable
 class PatchItem extends StatefulWidget {
@@ -114,9 +113,6 @@ class _PatchItemState extends State<PatchItem> {
                   scale: 1.2,
                   child: Checkbox(
                     value: widget.isSelected,
-                    activeColor: Theme.of(context).colorScheme.primary,
-                    checkColor:
-                        Theme.of(context).colorScheme.secondaryContainer,
                     side: BorderSide(
                       width: 2.0,
                       color: Theme.of(context).colorScheme.primary,
@@ -144,26 +140,12 @@ class _PatchItemState extends State<PatchItem> {
                 children: <Widget>[
                   Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: TextButton.icon(
+                    child: InputChip(
+                      avatar: const Icon(Icons.warning_rounded),
                       label: I18nText('warning'),
-                      icon: const Icon(Icons.warning, size: 20.0),
-                      onPressed: () => _showUnsupportedWarningDialog(),
-                      style: ButtonStyle(
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.secondary,
-                            ),
-                          ),
-                        ),
-                        backgroundColor: MaterialStateProperty.all(
-                          Colors.transparent,
-                        ),
-                        foregroundColor: MaterialStateProperty.all(
-                          Theme.of(context).colorScheme.secondary,
-                        ),
-                      ),
+                      onSelected: (bool value) {
+                        _showUnsupportedWarningDialog();
+                      },
                     ),
                   ),
                 ],
@@ -182,7 +164,6 @@ class _PatchItemState extends State<PatchItem> {
       context: context,
       builder: (context) => AlertDialog(
         title: I18nText('warning'),
-        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
         content: I18nText(
           'patchItem.unsupportedDialogText',
           translationParams: {
@@ -192,10 +173,10 @@ class _PatchItemState extends State<PatchItem> {
           },
         ),
         actions: <Widget>[
-          CustomMaterialButton(
-            label: I18nText('okButton'),
-            onPressed: () => Navigator.of(context).pop(),
-          )
+          TextButton(
+            child: I18nText('okButton'),
+            onPressed: () => Navigator.pop(context, 'OK'),
+          ),
         ],
       ),
     );
