@@ -83,7 +83,7 @@ dev_dependencies:
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
-  injectable_generator: ^1.5.4  
+  injectable_generator: ^2.0.0  
 
 
 
