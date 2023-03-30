@@ -3,6 +3,8 @@ name: 🤖 Compile Task Force
 on:
   workflow_dispatch:
   pull_request:
+    paths: 
+      - "**.dart"
 
 jobs:
   build:
