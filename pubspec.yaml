@@ -79,7 +79,7 @@ dependencies:
 dev_dependencies:
   json_serializable: ^6.3.1
   build_runner: any
-  flutter_launcher_icons: ^0.10.0
+  flutter_launcher_icons: ^0.13.0
   flutter_lints: ^2.0.1
   flutter_test:
     sdk: flutter
