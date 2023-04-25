@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:revanced_manager/app/app.locator.dart';
 import 'package:revanced_manager/services/manager_api.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/custom_text_field.dart';
@@ -16,8 +17,6 @@ class SManageKeystorePassword extends BaseViewModel {
       TextEditingController();
 
   Future<void> showKeystoreDialog(BuildContext context) async {
-    final String keystorePasswordText = _managerAPI.getKeystorePassword();
-    _keystorePasswordController.text = keystorePasswordText;
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -27,8 +26,12 @@ class SManageKeystorePassword extends BaseViewModel {
             const Spacer(),
             IconButton(
               icon: const Icon(Icons.manage_history_outlined),
-              onPressed: () => _keystorePasswordController.text =
-                  _managerAPI.defaultKeystorePassword,
+              onPressed: () async => {
+                await _managerAPI.generateKeystorePassword(),
+                _keystorePasswordController.text =
+                    await const FlutterSecureStorage()
+                        .read(key: 'keystorePassword') as String,
+              },
               color: Theme.of(context).colorScheme.secondary,
             )
           ],

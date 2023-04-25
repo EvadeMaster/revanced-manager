@@ -1,7 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:injectable/injectable.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -26,7 +28,7 @@ class ManagerAPI {
   String storedPatchesFile = '/selected-patches.json';
   String keystoreFile =
       '/sdcard/Android/data/app.revanced.manager.flutter/files/revanced-manager.keystore';
-  String defaultKeystorePassword = 's3cur3p@ssw0rd';
+  //String defaultKeystorePassword = 's3cur3p@ssw0rd';
   String defaultApiUrl = 'https://releases.revanced.app/';
   String defaultRepoUrl = 'https://api.github.com';
   String defaultPatcherRepo = 'revanced/revanced-patcher';
@@ -124,12 +126,31 @@ class ManagerAPI {
     await _prefs.setBool('experimentalPatchesEnabled', value);
   }
 
-  Future<void> setKeystorePassword(String password) async {
-    await _prefs.setString('keystorePassword', password);
+  Future<String?> generateKeystorePassword() async {
+    const length = 20;
+    const characters =
+        r'adcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{};:,./<>?';
+
+    await const FlutterSecureStorage().write(
+      key: 'keystorePassword',
+      value: List.generate(length, (index) {
+        return characters[Random.secure().nextInt(characters.length)];
+      }).join(),
+    );
+    return null;
   }
 
-  String getKeystorePassword() {
-    return _prefs.getString('keystorePassword') ?? defaultKeystorePassword;
+  Future<void> setKeystorePassword(String password) async {
+    await const FlutterSecureStorage()
+        .write(key: 'keystorePassword', value: password);
+  }
+
+  Future<String?> getKeystorePassword() async {
+    if (await const FlutterSecureStorage().read(key: 'keystorePassword') ==
+        '') {
+      await generateKeystorePassword();
+    }
+    return const FlutterSecureStorage().read(key: 'keystorePassword');
   }
 
   Future<void> deleteTempFolder() async {
@@ -145,6 +166,7 @@ class ManagerAPI {
     );
     if (await keystore.exists()) {
       await keystore.delete();
+      await generateKeystorePassword();
     }
   }
 
