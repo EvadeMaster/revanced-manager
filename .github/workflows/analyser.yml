@@ -1,0 +1,30 @@
+name: 🤖 Analyse Task Force
+
+on:
+  push:
+    paths: 
+      - "**.dart"
+  pull_request:
+    paths: 
+      - "**.dart"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          cache: true
+      - name: Install Flutter dependencies
+        run: flutter pub get
+      - name: Generate files with Builder
+        run: flutter packages pub run build_runner build --delete-conflicting-outputs
+      - name: Dart Analyze
+        uses: ValentinVignal/action-dart-analyze@v0.15
+        with:
+          fail-on: warning
