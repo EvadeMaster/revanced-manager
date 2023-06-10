@@ -16,6 +16,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
+      - name: Move the Gradle Wrapper to repository
+        # Unable to specify subdirectory, so we've appiled temporary fix for now.
+        # see gradle/wrapper-validation-ation#14
+        run: mv android/gradle .
       - name: Validate the Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
 
