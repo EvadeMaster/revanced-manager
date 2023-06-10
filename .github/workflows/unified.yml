@@ -19,7 +19,7 @@ jobs:
       - name: Move the Gradle Wrapper to repository
         # Unable to specify subdirectory, so we've appiled temporary fix for now.
         # see gradle/wrapper-validation-ation#14
-        run: mv android $GITHUB_WORKSPACE
+        run: mv android/* $GITHUB_WORKSPACE
       - name: Validate the Gradle Wrapper
         uses: gradle/wrapper-validation-action@v1
 
