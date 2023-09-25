@@ -90,7 +90,7 @@ jobs:
       - name: Comment to Pull Request #${{ inputs.pr-number }}
         uses: thollander/actions-comment-pull-request@v2
         with:
-          GITHUB_TOKEN: ${{ secrets.PULL_REQUESTS_WRITE }}
+          GITHUB_TOKEN: ${{ github.token }}
           message: |
             ${{ env.MESSAGE }} @ ${{ env.COMMIT_HASH }}
             
