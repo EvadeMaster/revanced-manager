@@ -81,11 +81,11 @@ jobs:
     steps:
       - name: Set env
         run: |
-          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH_MESSAGE=@ $(git rev-parse --short HEAD)" >> $GITHUB_ENV
           if [[ "${{ needs.build.outputs.build_status }}" == "success" ]]; then
-            echo "MESSAGE=✅ Build succeeded!" >> $GITHUB_OUTPUT
+            echo "MESSAGE=✅ Build succeeded!" >> $GITHUB_ENV
           else
-            echo "MESSAGE=🚫 Build failed!" >> $GITHUB_OUTPUT
+            echo "MESSAGE=🚫 Build failed!" >> $GITHUB_ENV
           fi
       - name: Comment to Pull Request ${{ inputs.pr-number }}
         uses: thollander/actions-comment-pull-request@v2
@@ -93,7 +93,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
           pr_number: ${{ inputs.pr-number }}
           message: |
-            ${{ env.MESSAGE }} @ ${{ env.COMMIT_HASH }}
+            ${{ env.MESSAGE }} ${{ env.COMMIT_HASH }}
             
             You can check the details [here](${{ github.event.workflow_run.html_url }}).
   
