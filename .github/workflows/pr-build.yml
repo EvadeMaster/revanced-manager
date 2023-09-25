@@ -83,6 +83,7 @@ jobs:
     steps:
       - name: Set env
         run: |
+          echo "DATETIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
           if [[ "${{ needs.build.result }}" == "success" ]]; then
             echo "MESSAGE=✅ Build succeeded!" >> $GITHUB_ENV
           else
@@ -95,7 +96,7 @@ jobs:
           pr_number: ${{ inputs.pr-number }}
           mode: recreate
           message: |
-            ${{ env.MESSAGE }} @ $(date +'%Y-%m-%d %H:%M:%S')
+            ${{ env.MESSAGE }} @ ${{ env.DATETIME }}
             
             You can check the details [here](${{ github.event.pull_request.html_url }}).
   
