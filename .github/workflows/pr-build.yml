@@ -41,6 +41,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh repo clone validcube/revanced-manager
+          cd revanced-manager
           gh pr checkout ${{ inputs.pr-number }}
       - name: Checkout
         uses: actions/checkout@v4
@@ -67,12 +68,12 @@ jobs:
           flutter build apk --${{ inputs.app-variant }};
       - name: Set env
         run: |
-          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH_MESSAGE=@ $(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
           name: revanced-manager-${{ env.COMMIT_HASH }}-${{ inputs.pr-number }}-${{ inputs.app-variant }}-${{ inputs.flutter-variant }}
-          path: build/app/outputs/flutter-apk/app-debug.apk
+          path: build/app/outputs/flutter-apk/app-${{ inputs.app-variant }}.apk
           
   notify-pull-request:
     name: Notify Pull Request
@@ -81,13 +82,12 @@ jobs:
     steps:
       - name: Set env
         run: |
-          echo "COMMIT_HASH_MESSAGE=@ $(git rev-parse --short HEAD)" >> $GITHUB_ENV
           if [[ "${{ needs.build.outputs.build_status }}" == "success" ]]; then
             echo "MESSAGE=✅ Build succeeded!" >> $GITHUB_ENV
           else
             echo "MESSAGE=🚫 Build failed!" >> $GITHUB_ENV
           fi
-      - name: Comment to Pull Request ${{ inputs.pr-number }}
+      - name: "Comment to Pull Request #${{ inputs.pr-number }}"
         uses: thollander/actions-comment-pull-request@v2
         with:
           GITHUB_TOKEN: ${{ github.token }}
@@ -95,7 +95,7 @@ jobs:
           message: |
             ${{ env.MESSAGE }} ${{ env.COMMIT_HASH }}
             
-            You can check the details [here](${{ github.event.workflow_run.html_url }}).
+            You can check the details [here](${{ github.event.pull_request.html_url }}).
   
             - PR: ${{ inputs.pr-number }}
             - App variant: ${{ inputs.app-variant }}
