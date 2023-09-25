@@ -87,10 +87,11 @@ jobs:
           else
             echo "MESSAGE=🚫 Build failed!" >> $GITHUB_OUTPUT
           fi
-      - name: Comment to Pull Request #${{ inputs.pr-number }}
+      - name: Comment to Pull Request ${{ inputs.pr-number }}
         uses: thollander/actions-comment-pull-request@v2
         with:
           GITHUB_TOKEN: ${{ github.token }}
+          pr_number: ${{ inputs.pr-number }}
           message: |
             ${{ env.MESSAGE }} @ ${{ env.COMMIT_HASH }}
             
