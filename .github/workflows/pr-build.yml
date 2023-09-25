@@ -32,7 +32,7 @@ permissions:
 
 jobs:
   build:
-    name: Build
+    name: Build the application
     continue-on-error: true
     runs-on: ubuntu-latest
     steps:
@@ -69,7 +69,7 @@ jobs:
           flutter build apk --${{ inputs.app-variant }};
       - name: Set env
         run: |
-          echo "COMMIT_HASH_MESSAGE=@ $(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
@@ -83,7 +83,7 @@ jobs:
     steps:
       - name: Set env
         run: |
-          if [[ "${{ needs.build.outputs.build_status }}" == "success" ]]; then
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
             echo "MESSAGE=✅ Build succeeded!" >> $GITHUB_ENV
           else
             echo "MESSAGE=🚫 Build failed!" >> $GITHUB_ENV
@@ -93,8 +93,9 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ github.token }}
           pr_number: ${{ inputs.pr-number }}
+          mode: recreate
           message: |
-            ${{ env.MESSAGE }} ${{ env.COMMIT_HASH }}
+            ${{ env.MESSAGE }} @ $(date +'%Y-%m-%d %H:%M:%S')
             
             You can check the details [here](${{ github.event.pull_request.html_url }}).
   
