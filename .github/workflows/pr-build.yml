@@ -3,20 +3,20 @@ name: PR Build
 on:
   workflow_dispatch:
     inputs:
-      flutter-variant:
+      flutter-branch:
         required: true
         type: choice
-        description: Flutter variant
+        description: Flutter branch
         default: 'stable'
         options: 
         - stable
         - beta
         - dev
         - master
-      app-variant:
+      app-flavour:
         required: true
         type: choice
-        description: App variant
+        description: App flavour
         default: 'release'
         options: 
         - release
@@ -33,10 +33,9 @@ permissions:
 jobs:
   build:
     name: Build the application
-    continue-on-error: true
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout the repository
+      - name: Checkout the PR
         env: 
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -57,7 +56,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          channel: ${{ inputs.flutter-variant }}
+          channel: ${{ inputs.flutter-branch }}
           cache: true
       - name: Install Flutter dependencies
         run: flutter pub get
@@ -67,15 +66,17 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          flutter build apk --${{ inputs.app-variant }};
+          flutter build apk --${{ inputs.app-flavour }};
       - name: Set env
         run: |
           echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
-          name: revanced-manager-${{ env.COMMIT_HASH }}-${{ inputs.pr-number }}-${{ inputs.app-variant }}-${{ inputs.flutter-variant }}
-          path: build/app/outputs/flutter-apk/app-${{ inputs.app-variant }}.apk
+          name: revanced-manager-(${{ env.COMMIT_HASH }}-${{ inputs.pr-number }}-${{ inputs.app-flavour }})-${{ inputs.flutter-branch }}
+          path: | 
+            build/app/outputs/flutter-apk/app-${{ inputs.app-flavour }}.apk
+            build/app/outputs/flutter-apk/app-${{ inputs.app-flavour }}.apk.sha1
           
   notify-pull-request:
     name: Notify Pull Request
@@ -101,6 +102,5 @@ jobs:
             
             You can check the details [here](${{ github.event.workflow_run.html_url }}).
   
-            - PR: ${{ inputs.pr-number }}
-            - App variant: ${{ inputs.app-variant }}
-            - Flutter variant: ${{ inputs.flutter-variant }}
+            - App flavour: ${{ inputs.app-flavour }}
+            - Flutter branch: ${{ inputs.flutter-branch }}
