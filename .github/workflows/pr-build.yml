@@ -90,6 +90,7 @@ jobs:
           else
             echo "MESSAGE=🚫 Build failed!" >> $GITHUB_ENV
           fi
+          echo "${{ needs.build.result }}"
       - name: "Comment to Pull Request #${{ inputs.pr-number }}"
         uses: thollander/actions-comment-pull-request@v2
         with:
