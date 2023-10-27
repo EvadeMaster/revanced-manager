@@ -24,7 +24,7 @@ on:
         description: PR number (No hashtag)
         required: true
       flutter-cache:
-        description: Use when something isn't quite right
+        description: Flutter cache
         type: boolean
         default: true
         
@@ -65,7 +65,7 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: ${{ inputs.flutter-branch }}
-          cache: ${{ inputs.cache }}
+          cache: ${{ inputs.flutter-cache }}
           
       - name: Install Flutter dependencies
         run: flutter pub get
