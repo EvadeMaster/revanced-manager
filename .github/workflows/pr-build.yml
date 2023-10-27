@@ -12,6 +12,10 @@ on:
           - beta
           - dev
           - master
+      flutter-cache:
+        description: Flutter cache
+        type: boolean
+        default: true
       app-flavour:
         description: App flavour
         default: 'release'
@@ -23,10 +27,6 @@ on:
       pr-number:
         description: PR number (No hashtag)
         required: true
-      flutter-cache:
-        description: Flutter cache
-        type: boolean
-        default: true
         
 jobs:
   build:
@@ -50,7 +50,6 @@ jobs:
           
       - name: Checkout
         uses: actions/checkout@v4
-        # Without this, the entire build failed, I don't understand why & how??
         with:
           persist-credentials: false
           
@@ -78,7 +77,7 @@ jobs:
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          flutter build apk --${{ inputs.app-flavour }};
+          flutter build pk --${{ inputs.app-flavour }};
           
       - name: Prepare to comment & upload artefacts
         run: |
@@ -106,6 +105,7 @@ jobs:
             ### ⚙️ Overview
             - App flavour: ${{ inputs.app-flavour }}
             - Flutter branch: ${{ inputs.flutter-branch }}
+            - Flutter cache: ${{ inputs.flutter-cache }}
             - Start time: ${{ env.DATETIME }}
 
       - name: Upload build
