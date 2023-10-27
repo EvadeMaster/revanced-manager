@@ -34,15 +34,20 @@ jobs:
   build:
     name: Build the application
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - name: Checkout the PR
         env: 
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh repo clone validcube/revanced-manager
+          gh repo clone ReVanced/revanced-manager
           cd revanced-manager
-          gh repo set-default validcube/revanced-manager
+          gh repo set-default ReVanced/revanced-manager
           gh pr checkout ${{ inputs.pr-number }}
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - name: Setup JDK
         uses: actions/setup-java@v3
         with:
@@ -63,8 +68,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           flutter build apk --${{ inputs.app-flavour }};
-      - name: Set env
-        run: |
           echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
       - name: Upload build
         uses: actions/upload-artifact@v3
@@ -76,16 +79,16 @@ jobs:
           
   notify-pull-request:
     name: Notify Pull Request
-    runs-on: ubuntu-latest
     needs: build
+    runs-on: ubuntu-latest
     steps:
-      - name: Set env
+      - name: Setup
         run: |
           echo "DATETIME=$(date +'%Y-%m-%d %H:%M:%S')" >> $GITHUB_ENV
-          if [[ "${{ needs.build.result }}" == "failure" ]]; then
-            echo "MESSAGE=🚫 Build failed!" >> $GITHUB_ENV
-          else
+          if [[ "${{ needs.build.result }}" == "success" ]]; then
             echo "MESSAGE=✅ Build succeeded!" >> $GITHUB_ENV
+          else
+            echo "MESSAGE=🚫 Build failed!" >> $GITHUB_ENV
           fi
       - name: "Comment to Pull Request #${{ inputs.pr-number }}"
         uses: thollander/actions-comment-pull-request@v2
