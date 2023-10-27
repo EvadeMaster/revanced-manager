@@ -3,6 +3,7 @@ name: PR Build
 on:
   workflow_dispatch:
     inputs:
+      # Flutter
       flutter-branch:
         description: Flutter branch
         type: choice
@@ -13,9 +14,10 @@ on:
           - dev
           - master
       flutter-cache:
-        description: Flutter cache
+        description: Cache
         type: boolean
         default: true
+      # Application configuration
       app-flavour:
         description: App flavour
         default: 'release'
@@ -24,17 +26,17 @@ on:
           - release
           - debug
           - profile
+      # Pull Request
       pr-number:
         description: PR number (No hashtag)
         required: true
 
-run-name: "Build PR ${{ inputs.pr-number }}"
+run-name: "Build PR ${{ inputs.pr-number }} with "
         
 jobs:
   build:
     name: Build the application
     runs-on: ubuntu-latest
-    
     permissions:
       contents: read
       pull-requests: write
@@ -84,7 +86,6 @@ jobs:
           
       - name: Prepare to comment & upload artefacts
         run: |
-
           echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           if [[ "${{ steps.flutter-build.outcome }}" == "success" ]]; then
             echo "MESSAGE=✅ The CI has sucessfully built ReVanced Manager at ${{ env.COMMIT_HASH }}." >> $GITHUB_ENV
