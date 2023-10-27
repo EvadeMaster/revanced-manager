@@ -85,7 +85,7 @@ jobs:
       - name: Prepare to comment & upload artefacts
         run: |
 
-          echo "COMMIT_HASH=$( git rev-parse --short HEAD )" >> $GITHUB_ENV
+          echo "COMMIT_HASH=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
           if [[ "${{ steps.flutter-build.outcome }}" == "success" ]]; then
             echo "MESSAGE=✅ The CI has sucessfully built ReVanced Manager at ${{ env.COMMIT_HASH }}." >> $GITHUB_ENV
           else
