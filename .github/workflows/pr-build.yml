@@ -27,12 +27,14 @@ on:
       pr-number:
         description: PR number (No hashtag)
         required: true
+
+run-name: "Build PR ${{ inputs.pr-number }}"
         
 jobs:
   build:
     name: Build the application
     runs-on: ubuntu-latest
-    continue-on-error: true
+    
     permissions:
       contents: read
       pull-requests: write
@@ -73,6 +75,7 @@ jobs:
         run: flutter packages pub run build_runner build --delete-conflicting-outputs
         
       - name: Build with Flutter
+        continue-on-error: true
         id: flutter-build
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
