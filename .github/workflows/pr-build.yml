@@ -84,9 +84,20 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           flutter build apk --${{ inputs.app-flavour }};
+
+      - uses: r0adkll/sign-android-release@v1
+        name: Sign app APK
+        id: sign_app
+        with:
+          releaseDirectory: app/build/outputs/apk/release
+          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
+          alias: ${{ secrets.ALIAS }}
+          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
+          keyPassword: ${{ secrets.KEY_PASSWORD }}
           
       - name: Prepare to comment
         run: |
+          mv ${{ steps.sign_app.outputs.signedReleaseFile }} "ReVanced Manager Signed APK - ${{ env.COMMIT_HASH }}"
           if [[ "${{ steps.flutter-build.outcome }}" == "success" ]]; then
             echo "MESSAGE=✅ The CI has sucessfully built ReVanced Manager at ${{ env.COMMIT_HASH }}." >> $GITHUB_ENV
           else
@@ -115,8 +126,6 @@ jobs:
       - name: Upload build
         uses: actions/upload-artifact@v3
         with:
-          error: true
           name: revanced-manager-(${{ env.COMMIT_HASH }}-${{ inputs.pr-number }}-${{ inputs.app-flavour }})-${{ inputs.flutter-branch }}
           path: | 
-            build/app/outputs/flutter-apk/app-${{ inputs.app-flavour }}.apk
-            build/app/outputs/flutter-apk/app-${{ inputs.app-flavour }}.apk.sha1
+            "ReVanced Manager Signed APK - ${{ env.COMMIT_HASH }}"
