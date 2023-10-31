@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/widgets/I18nText.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
 import 'package:revanced_manager/ui/views/settings/settingsFragment/settings_manage_keystore_password.dart';
 import 'package:revanced_manager/ui/views/settings/settings_viewmodel.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/settings_section.dart';
@@ -13,66 +13,88 @@ class SExportSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SettingsSection(
-      title: 'settingsView.exportSectionTitle',
+      title: t.settingsView.exportSectionTitle,
       children: <Widget>[
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
-          title: I18nText(
-            'settingsView.exportPatchesLabel',
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+          title: Text(
+            t.settingsView.exportPatchesLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          subtitle: I18nText('settingsView.exportPatchesHint'),
+          subtitle: Text(t.settingsView.exportPatchesHint),
           onTap: () => _settingsViewModel.exportPatches(),
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
-          title: I18nText(
-            'settingsView.importPatchesLabel',
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+          title: Text(
+            t.settingsView.importPatchesLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          subtitle: I18nText('settingsView.importPatchesHint'),
+          subtitle: Text(t.settingsView.importPatchesHint),
           onTap: () => _settingsViewModel.importPatches(context),
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
-          title: I18nText(
-            'settingsView.exportKeystoreLabel',
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+          title: Text(
+            t.settingsView.resetStoredPatchesLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          subtitle: I18nText('settingsView.exportKeystoreHint'),
+          subtitle: Text(t.settingsView.resetStoredPatchesHint),
+          onTap: () => _showResetDialog(
+            context,
+            t.settingsView.resetStoredPatchesDialogTitle,
+            t.settingsView.resetStoredPatchesDialogText,
+            _settingsViewModel.resetSelectedPatches,
+          ),
+        ),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
+          title: Text(
+            t.settingsView.resetStoredOptionsLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(t.settingsView.resetStoredOptionsHint),
+          onTap: () => _showResetDialog(
+            context,
+            t.settingsView.resetStoredOptionsDialogTitle,
+            t.settingsView.resetStoredOptionsDialogText,
+            _settingsViewModel.resetAllOptions,
+          ),
+        ),
+        ListTile(
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
+          title: Text(
+            t.settingsView.exportKeystoreLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          subtitle: Text(t.settingsView.exportKeystoreHint),
           onTap: () => _settingsViewModel.exportKeystore(),
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
-          title: I18nText(
-            'settingsView.importKeystoreLabel',
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+          title: Text(
+            t.settingsView.importKeystoreLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          subtitle: I18nText('settingsView.importKeystoreHint'),
+          subtitle: Text(t.settingsView.importKeystoreHint),
           onTap: () async {
             await _settingsViewModel.importKeystore();
             final sManageKeystorePassword = SManageKeystorePassword();
@@ -83,43 +105,69 @@ class SExportSection extends StatelessWidget {
         ),
         ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20.0),
-          title: I18nText(
-            'settingsView.resetStoredPatchesLabel',
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+          title: Text(
+            t.settingsView.regenerateKeystoreLabel,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
-          subtitle: I18nText('settingsView.resetStoredPatchesHint'),
-          onTap: () => _showResetStoredPatchesDialog(context),
+          subtitle: Text(t.settingsView.regenerateKeystoreHint),
+          onTap: () => _showDeleteKeystoreDialog(context),
         ),
+        // SManageKeystorePasswordUI(),
       ],
     );
   }
 
-  Future<void> _showResetStoredPatchesDialog(context) {
+  Future<void> _showResetDialog(
+    context,
+    dialogTitle,
+    dialogText,
+    dialogAction,
+  ) {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: I18nText('settingsView.resetStoredPatchesDialogTitle'),
+        title: Text(dialogTitle),
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        content: I18nText(
-          'settingsView.resetStoredPatchesDialogText',
-        ),
+        content: Text(dialogText),
         actions: <Widget>[
           CustomMaterialButton(
             isFilled: false,
-            label: I18nText('noButton'),
+            label: Text(t.noButton),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CustomMaterialButton(
-            label: I18nText('yesButton'),
+            label: Text(t.yesButton),
             onPressed: () => {
               Navigator.of(context).pop(),
-              _settingsViewModel.resetSelectedPatches(),
+              dialogAction(),
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showDeleteKeystoreDialog(context) {
+    return showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.settingsView.regenerateKeystoreDialogTitle),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        content: Text(t.settingsView.regenerateKeystoreDialogText),
+        actions: <Widget>[
+          CustomMaterialButton(
+            isFilled: false,
+            label: Text(t.noButton),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          CustomMaterialButton(
+            label: Text(t.yesButton),
+            onPressed: () => {
+              Navigator.of(context).pop(),
+              _settingsViewModel.deleteKeystore(),
             },
           ),
         ],

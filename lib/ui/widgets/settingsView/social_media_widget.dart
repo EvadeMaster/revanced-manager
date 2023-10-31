@@ -1,9 +1,10 @@
 import 'package:expandable/expandable.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/social_media_item.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_card.dart';
+import 'package:revanced_manager/ui/widgets/shared/custom_icon.dart';
 
 class SocialMediaWidget extends StatelessWidget {
   const SocialMediaWidget({
@@ -25,17 +26,14 @@ class SocialMediaWidget extends StatelessWidget {
       ),
       header: ListTile(
         contentPadding: padding ?? EdgeInsets.zero,
-        title: I18nText(
-          'socialMediaCard.widgetTitle',
-          child: const Text(
-            '',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w500,
-            ),
+        title: Text(
+          t.socialMediaCard.widgetTitle,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.w500,
           ),
         ),
-        subtitle: I18nText('socialMediaCard.widgetSubtitle'),
+        subtitle: Text(t.socialMediaCard.widgetSubtitle),
       ),
       expanded: Padding(
         padding: padding ?? EdgeInsets.zero,
@@ -43,10 +41,16 @@ class SocialMediaWidget extends StatelessWidget {
           child: Column(
             children: <Widget>[
               SocialMediaItem(
+                icon: Icon(CustomIcon.revancedIcon),
+                title: Text('Website'),
+                subtitle: Text('revanced.app'),
+                url: 'https://revanced.app',
+              ),
+              SocialMediaItem(
                 icon: FaIcon(FontAwesomeIcons.github),
                 title: Text('GitHub'),
-                subtitle: Text('github.com/revanced'),
-                url: 'https://github.com/revanced',
+                subtitle: Text('github.com/ReVanced'),
+                url: 'https://github.com/ReVanced',
               ),
               SocialMediaItem(
                 icon: FaIcon(FontAwesomeIcons.discord),
@@ -67,10 +71,10 @@ class SocialMediaWidget extends StatelessWidget {
                 url: 'https://reddit.com/r/revancedapp',
               ),
               SocialMediaItem(
-                icon: FaIcon(FontAwesomeIcons.twitter),
-                title: Text('Twitter'),
+                icon: FaIcon(FontAwesomeIcons.xTwitter),
+                title: Text('X'),
                 subtitle: Text('@revancedapp'),
-                url: 'https://twitter.com/revancedapp',
+                url: 'https://x.com/revancedapp',
               ),
               SocialMediaItem(
                 icon: FaIcon(FontAwesomeIcons.youtube),

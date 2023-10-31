@@ -1,21 +1,26 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/widgets/I18nText.dart';
 import 'package:revanced_manager/app/app.locator.dart';
+import 'package:revanced_manager/app/app.router.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
 import 'package:revanced_manager/models/patch.dart';
 import 'package:revanced_manager/models/patched_application.dart';
 import 'package:revanced_manager/services/manager_api.dart';
 import 'package:revanced_manager/services/patcher_api.dart';
 import 'package:revanced_manager/services/toast.dart';
 import 'package:revanced_manager/ui/views/patcher/patcher_viewmodel.dart';
+import 'package:revanced_manager/ui/widgets/patchesSelectorView/patch_item.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_material_button.dart';
 import 'package:revanced_manager/utils/check_for_supported_patch.dart';
 import 'package:stacked/stacked.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class PatchesSelectorViewModel extends BaseViewModel {
   final PatcherAPI _patcherAPI = locator<PatcherAPI>();
   final ManagerAPI _managerAPI = locator<ManagerAPI>();
+  final NavigationService _navigationService = locator<NavigationService>();
   final List<Patch> patches = [];
+  final List<Patch> currentSelection = [];
   final List<Patch> selectedPatches =
       locator<PatcherViewModel>().selectedPatches;
   PatchedApplication? selectedApp = locator<PatcherViewModel>().selectedApp;
@@ -28,23 +33,80 @@ class PatchesSelectorViewModel extends BaseViewModel {
     getPatchesVersion().whenComplete(() => notifyListeners());
     patches.addAll(
       _patcherAPI.getFilteredPatches(
-        selectedApp!.originalPackageName,
+        selectedApp!.packageName,
       ),
     );
+    final List<Option> requiredNullOptions =
+        getNullRequiredOptions(patches, selectedApp!.packageName);
     patches.sort((a, b) {
-      if (isPatchNew(a, selectedApp!.packageName) ==
-          isPatchNew(b, selectedApp!.packageName)) {
-        return a.name.compareTo(b.name);
+      if (b.options.any((option) => requiredNullOptions.contains(option)) &&
+          a.options.isEmpty) {
+        return 1;
       } else {
-        return isPatchNew(b, selectedApp!.packageName) ? 1 : -1;
+        return a.name.compareTo(b.name);
       }
     });
+    currentSelection.clear();
+    currentSelection.addAll(selectedPatches);
     notifyListeners();
   }
 
   bool isSelected(Patch patch) {
     return selectedPatches.any(
       (element) => element.name == patch.name,
+    );
+  }
+
+  void navigateToPatchOptions(List<Option> setOptions, Patch patch) {
+    _managerAPI.options = setOptions;
+    _managerAPI.selectedPatch = patch;
+    _managerAPI.modifiedOptions.clear();
+    _navigationService.navigateToPatchOptionsView();
+  }
+
+  bool areRequiredOptionsNull(BuildContext context) {
+    final List<String> patchesWithNullRequiredOptions = [];
+    final List<Option> requiredNullOptions =
+        getNullRequiredOptions(selectedPatches, selectedApp!.packageName);
+    if (requiredNullOptions.isNotEmpty) {
+      for (final patch in selectedPatches) {
+        for (final patchOption in patch.options) {
+          if (requiredNullOptions.contains(patchOption)) {
+            patchesWithNullRequiredOptions.add(patch.name);
+            break;
+          }
+        }
+      }
+      showSetRequiredOption(context, patchesWithNullRequiredOptions);
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> showSetRequiredOption(
+    BuildContext context,
+    List<String> patches,
+  ) async {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(t.notice),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        content: Text(
+          t.patchesSelectorView.setRequiredOption(
+            patches: patches.map((patch) => '• $patch').join('\n'),
+          ),
+        ),
+        actions: <Widget>[
+          CustomMaterialButton(
+            label: Text(t.okButton),
+            onPressed: () => {
+              Navigator.of(context).pop(),
+            },
+          ),
+        ],
+      ),
     );
   }
 
@@ -66,25 +128,22 @@ class PatchesSelectorViewModel extends BaseViewModel {
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-        title: I18nText('warning'),
-        content: I18nText(
-          'patchItem.patchesChangeWarningDialogText',
-          child: const Text(
-            '',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
+        title: Text(t.warning),
+        content: Text(
+          t.patchItem.patchesChangeWarningDialogText,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
         ),
         actions: [
           CustomMaterialButton(
             isFilled: false,
-            label: I18nText('okButton'),
+            label: Text(t.okButton),
             onPressed: () => Navigator.of(context).pop(),
           ),
           CustomMaterialButton(
-            label: I18nText('patchItem.patchesChangeWarningDialogButton'),
+            label: Text(t.patchItem.patchesChangeWarningDialogButton),
             onPressed: () {
               Navigator.of(context)
                 ..pop()
@@ -98,16 +157,16 @@ class PatchesSelectorViewModel extends BaseViewModel {
 
   void selectDefaultPatches() {
     selectedPatches.clear();
-    if (locator<PatcherViewModel>().selectedApp?.originalPackageName != null) {
+    if (locator<PatcherViewModel>().selectedApp?.packageName != null) {
       selectedPatches.addAll(
         _patcherAPI
             .getFilteredPatches(
-              locator<PatcherViewModel>().selectedApp!.originalPackageName,
+              locator<PatcherViewModel>().selectedApp!.packageName,
             )
             .where(
               (element) =>
                   !element.excluded &&
-                  (_managerAPI.areExperimentalPatchesEnabled() ||
+                  (!_managerAPI.isVersionCompatibilityCheckEnabled() ||
                       isPatchSupported(element)),
             ),
       );
@@ -123,7 +182,17 @@ class PatchesSelectorViewModel extends BaseViewModel {
   void selectPatches() {
     locator<PatcherViewModel>().selectedPatches = selectedPatches;
     saveSelectedPatches();
+    if (_managerAPI.ctx != null) {
+      Navigator.pop(_managerAPI.ctx!);
+      _managerAPI.ctx = null;
+    }
     locator<PatcherViewModel>().notifyListeners();
+  }
+
+  void resetSelection() {
+    selectedPatches.clear();
+    selectedPatches.addAll(currentSelection);
+    notifyListeners();
   }
 
   Future<void> getPatchesVersion() async {
@@ -137,7 +206,10 @@ class PatchesSelectorViewModel extends BaseViewModel {
               query.isEmpty ||
               query.length < 2 ||
               patch.name.toLowerCase().contains(query.toLowerCase()) ||
-              patch.getSimpleName().toLowerCase().contains(query.toLowerCase()),
+              patch.name
+                  .replaceAll(RegExp(r'[^\w\s]+'), '')
+                  .toLowerCase()
+                  .contains(query.toLowerCase()),
         )
         .toList();
     if (_managerAPI.areUniversalPatchesEnabled()) {
@@ -149,12 +221,61 @@ class PatchesSelectorViewModel extends BaseViewModel {
     }
   }
 
+  Widget getPatchItem(BuildContext context, Patch patch) {
+    return PatchItem(
+      name: patch.name,
+      simpleName: patch.getSimpleName(),
+      description: patch.description ?? '',
+      packageVersion: getAppInfo().version,
+      supportedPackageVersions: getSupportedVersions(patch),
+      isUnsupported: !isPatchSupported(patch),
+      isChangeEnabled: _managerAPI.isPatchesChangeEnabled(),
+      hasUnsupportedPatchOption: hasUnsupportedRequiredOption(
+        patch.options,
+        patch,
+      ),
+      options: patch.options,
+      isSelected: isSelected(patch),
+      navigateToOptions: (options) => navigateToPatchOptions(
+        options,
+        patch,
+      ),
+      onChanged: (value) => selectPatch(
+        patch,
+        value,
+        context,
+      ),
+    );
+  }
+
+  Widget getPatchCategory(BuildContext context, String category) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(
+        vertical: 10.0,
+      ),
+      child: Container(
+        padding: const EdgeInsets.only(
+          top: 10.0,
+          bottom: 10.0,
+          left: 5.0,
+        ),
+        child: Text(
+          category,
+          style: TextStyle(
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+      ),
+    );
+  }
+
   PatchedApplication getAppInfo() {
     return locator<PatcherViewModel>().selectedApp!;
   }
 
-  bool isPatchNew(Patch patch, String packageName) {
-    final List<Patch> savedPatches = _managerAPI.getSavedPatches(packageName);
+  bool isPatchNew(Patch patch) {
+    final List<Patch> savedPatches =
+        _managerAPI.getSavedPatches(selectedApp!.packageName);
     if (savedPatches.isEmpty) {
       return false;
     } else {
@@ -187,7 +308,7 @@ class PatchesSelectorViewModel extends BaseViewModel {
     final List<String> selectedPatches =
         this.selectedPatches.map((patch) => patch.name).toList();
     await _managerAPI.setSelectedPatches(
-      locator<PatcherViewModel>().selectedApp!.originalPackageName,
+      locator<PatcherViewModel>().selectedApp!.packageName,
       selectedPatches,
     );
   }
@@ -195,18 +316,18 @@ class PatchesSelectorViewModel extends BaseViewModel {
   Future<void> loadSelectedPatches(BuildContext context) async {
     if (_managerAPI.isPatchesChangeEnabled()) {
       final List<String> selectedPatches = await _managerAPI.getSelectedPatches(
-        locator<PatcherViewModel>().selectedApp!.originalPackageName,
+        locator<PatcherViewModel>().selectedApp!.packageName,
       );
       if (selectedPatches.isNotEmpty) {
         this.selectedPatches.clear();
         this.selectedPatches.addAll(
               patches.where((patch) => selectedPatches.contains(patch.name)),
             );
-        if (!_managerAPI.areExperimentalPatchesEnabled()) {
+        if (_managerAPI.isVersionCompatibilityCheckEnabled()) {
           this.selectedPatches.removeWhere((patch) => !isPatchSupported(patch));
         }
       } else {
-        locator<Toast>().showBottom('patchesSelectorView.noSavedPatches');
+        locator<Toast>().showBottom(t.patchesSelectorView.noSavedPatches);
       }
       notifyListeners();
     } else {

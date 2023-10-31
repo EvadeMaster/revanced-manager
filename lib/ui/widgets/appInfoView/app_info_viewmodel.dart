@@ -1,9 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 import 'package:device_apps/device_apps.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:intl/intl.dart';
 import 'package:revanced_manager/app/app.locator.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
 import 'package:revanced_manager/models/patched_application.dart';
 import 'package:revanced_manager/services/manager_api.dart';
 import 'package:revanced_manager/services/patcher_api.dart';
@@ -13,7 +13,6 @@ import 'package:revanced_manager/ui/views/home/home_viewmodel.dart';
 import 'package:revanced_manager/ui/views/navigation/navigation_viewmodel.dart';
 import 'package:revanced_manager/ui/views/patcher/patcher_viewmodel.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_material_button.dart';
-import 'package:revanced_manager/utils/string.dart';
 import 'package:stacked/stacked.dart';
 
 class AppInfoViewModel extends BaseViewModel {
@@ -54,7 +53,7 @@ class AppInfoViewModel extends BaseViewModel {
   }
 
   void updateNotImplemented(BuildContext context) {
-    _toast.showBottom('appInfoView.updateNotImplemented');
+    _toast.showBottom(t.appInfoView.updateNotImplemented);
   }
 
   Future<void> showUninstallDialog(
@@ -67,12 +66,12 @@ class AppInfoViewModel extends BaseViewModel {
       return showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: I18nText('appInfoView.rootDialogTitle'),
+          title: Text(t.appInfoView.rootDialogTitle),
           backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-          content: I18nText('appInfoView.rootDialogText'),
+          content: Text(t.appInfoView.rootDialogText),
           actions: <Widget>[
             CustomMaterialButton(
-              label: I18nText('okButton'),
+              label: Text(t.okButton),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -83,21 +82,21 @@ class AppInfoViewModel extends BaseViewModel {
         return showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: I18nText(
-              'appInfoView.unpatchButton',
+            title: Text(
+              t.appInfoView.unpatchButton,
             ),
             backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            content: I18nText(
-              'appInfoView.unpatchDialogText',
+            content: Text(
+              t.appInfoView.unpatchDialogText,
             ),
             actions: <Widget>[
               CustomMaterialButton(
                 isFilled: false,
-                label: I18nText('noButton'),
+                label: Text(t.noButton),
                 onPressed: () => Navigator.of(context).pop(),
               ),
               CustomMaterialButton(
-                label: I18nText('yesButton'),
+                label: Text(t.yesButton),
                 onPressed: () {
                   uninstallApp(context, app, onlyUnpatch);
                   Navigator.of(context).pop();
@@ -131,14 +130,14 @@ class AppInfoViewModel extends BaseViewModel {
     return showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: I18nText('appInfoView.appliedPatchesLabel'),
+        title: Text(t.appInfoView.appliedPatchesLabel),
         backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
         content: SingleChildScrollView(
           child: Text(getAppliedPatchesString(app.appliedPatches)),
         ),
         actions: <Widget>[
           CustomMaterialButton(
-            label: I18nText('okButton'),
+            label: Text(t.okButton),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],
@@ -147,17 +146,7 @@ class AppInfoViewModel extends BaseViewModel {
   }
 
   String getAppliedPatchesString(List<String> appliedPatches) {
-    final List<String> names = appliedPatches
-        .map(
-          (p) => p
-              .replaceAll('-', ' ')
-              .split('-')
-              .join(' ')
-              .toTitleCase()
-              .replaceFirst('Microg', 'MicroG'),
-        )
-        .toList();
-    return '\u2022 ${names.join('\n\u2022 ')}';
+    return '• ${appliedPatches.join('\n• ')}';
   }
 
   void openApp(PatchedApplication app) {

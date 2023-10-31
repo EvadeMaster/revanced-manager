@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:device_apps/device_apps.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:flutter_file_dialog/flutter_file_dialog.dart';
 import 'package:revanced_manager/app/app.locator.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
 import 'package:revanced_manager/models/patch.dart';
 import 'package:revanced_manager/models/patched_application.dart';
 import 'package:revanced_manager/services/manager_api.dart';
@@ -13,6 +13,7 @@ import 'package:revanced_manager/services/patcher_api.dart';
 import 'package:revanced_manager/services/toast.dart';
 import 'package:revanced_manager/ui/views/patcher/patcher_viewmodel.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_material_button.dart';
+import 'package:revanced_manager/utils/check_for_supported_patch.dart';
 import 'package:stacked/stacked.dart';
 
 class AppSelectorViewModel extends BaseViewModel {
@@ -73,13 +74,12 @@ class AppSelectorViewModel extends BaseViewModel {
     locator<PatcherViewModel>().selectedApp = PatchedApplication(
       name: application.appName,
       packageName: application.packageName,
-      originalPackageName: application.packageName,
       version: application.versionName!,
       apkFilePath: application.apkFilePath,
       icon: application.icon,
       patchDate: DateTime.now(),
     );
-    locator<PatcherViewModel>().loadLastSelectedPatches();
+    await locator<PatcherViewModel>().loadLastSelectedPatches();
   }
 
   Future<void> canSelectInstalled(
@@ -94,9 +94,16 @@ class AppSelectorViewModel extends BaseViewModel {
           return showSelectFromStorageDialog(context);
         }
       } else if (!await checkSplitApk(packageName) || isRooted) {
-        selectApp(app);
+        await selectApp(app);
         if (context.mounted) {
           Navigator.pop(context);
+        }
+        final List<Option> requiredNullOptions = getNullRequiredOptions(
+          locator<PatcherViewModel>().selectedPatches,
+          packageName,
+        );
+        if (requiredNullOptions.isNotEmpty) {
+          locator<PatcherViewModel>().showRequiredOptionDialog();
         }
       }
     }
@@ -117,26 +124,20 @@ class AppSelectorViewModel extends BaseViewModel {
             color: Theme.of(context).colorScheme.primary,
           ),
           const SizedBox(height: 20),
-          I18nText(
-            'appSelectorView.featureNotAvailable',
-            child: const Text(
-              '',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w600,
-                wordSpacing: 1.5,
-              ),
+          Text(
+            t.appSelectorView.featureNotAvailable,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+              wordSpacing: 1.5,
             ),
           ),
           const SizedBox(height: 20),
-          I18nText(
-            'appSelectorView.featureNotAvailableText',
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 14,
-              ),
+          Text(
+            t.appSelectorView.featureNotAvailableText,
+            style: const TextStyle(
+              fontSize: 14,
             ),
           ),
           const SizedBox(height: 30),
@@ -152,7 +153,7 @@ class AppSelectorViewModel extends BaseViewModel {
               children: [
                 const Icon(Icons.sd_card),
                 const SizedBox(width: 10),
-                I18nText('appSelectorView.selectFromStorageButton'),
+                Text(t.appSelectorView.selectFromStorageButton),
               ],
             ),
           ),
@@ -166,7 +167,7 @@ class AppSelectorViewModel extends BaseViewModel {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 const SizedBox(width: 10),
-                I18nText('cancelButton'),
+                Text(t.cancelButton),
               ],
             ),
           ),
@@ -177,13 +178,14 @@ class AppSelectorViewModel extends BaseViewModel {
 
   Future<void> selectAppFromStorage(BuildContext context) async {
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: ['apk'],
+      final String? result = await FlutterFileDialog.pickFile(
+        params: const OpenFileDialogParams(
+          fileExtensionsFilter: ['apk'],
+        ),
       );
-      if (result != null && result.files.single.path != null) {
-        final File apkFile = File(result.files.single.path!);
-        final List<String> pathSplit = result.files.single.path!.split('/');
+      if (result != null) {
+        final File apkFile = File(result);
+        final List<String> pathSplit = result.split('/');
         pathSplit.removeLast();
         final Directory filePickerCacheDir = Directory(pathSplit.join('/'));
         final Iterable<File> deletableFiles =
@@ -202,9 +204,8 @@ class AppSelectorViewModel extends BaseViewModel {
           locator<PatcherViewModel>().selectedApp = PatchedApplication(
             name: application.appName,
             packageName: application.packageName,
-            originalPackageName: application.packageName,
             version: application.versionName!,
-            apkFilePath: result.files.single.path!,
+            apkFilePath: result,
             icon: application.icon,
             patchDate: DateTime.now(),
             isFromStorage: true,
@@ -216,7 +217,7 @@ class AppSelectorViewModel extends BaseViewModel {
       if (kDebugMode) {
         print(e);
       }
-      _toast.showBottom('appSelectorView.errorMessage');
+      _toast.showBottom(t.appSelectorView.errorMessage);
     }
   }
 
@@ -226,7 +227,8 @@ class AppSelectorViewModel extends BaseViewModel {
           (app) =>
               query.isEmpty ||
               query.length < 2 ||
-              app.appName.toLowerCase().contains(query.toLowerCase()),
+              app.appName.toLowerCase().contains(query.toLowerCase()) ||
+              app.packageName.toLowerCase().contains(query.toLowerCase()),
         )
         .toList();
   }
@@ -243,5 +245,5 @@ class AppSelectorViewModel extends BaseViewModel {
   }
 
   void showDownloadToast() =>
-      _toast.showBottom('appSelectorView.downloadToast');
+      _toast.showBottom(t.appSelectorView.downloadToast);
 }

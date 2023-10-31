@@ -1,10 +1,10 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:injectable/injectable.dart';
 import 'package:revanced_manager/app/app.locator.dart';
 import 'package:revanced_manager/app/app.router.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
 import 'package:revanced_manager/models/patch.dart';
 import 'package:revanced_manager/models/patched_application.dart';
 import 'package:revanced_manager/services/manager_api.dart';
@@ -21,6 +21,7 @@ class PatcherViewModel extends BaseViewModel {
   final ManagerAPI _managerAPI = locator<ManagerAPI>();
   final PatcherAPI _patcherAPI = locator<PatcherAPI>();
   PatchedApplication? selectedApp;
+  BuildContext? ctx;
   List<Patch> selectedPatches = [];
   List<String> removedPatches = [];
 
@@ -44,79 +45,75 @@ class PatcherViewModel extends BaseViewModel {
     return selectedApp == null;
   }
 
-  Future<bool> isValidPatchConfig() async {
-    final bool needsResourcePatching = await _patcherAPI.needsResourcePatching(
-      selectedPatches,
-    );
-    if (needsResourcePatching && selectedApp != null) {
-      final bool isSplit = await _managerAPI.isSplitApk(selectedApp!);
-      return !isSplit;
-    }
-    return true;
-  }
-
-  Future<void> showPatchConfirmationDialog(BuildContext context) async {
-    final bool isValid = await isValidPatchConfig();
-    if (context.mounted) {
-      if (isValid) {
-        showArmv7WarningDialog(context);
-      } else {
-        return showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: I18nText('warning'),
-            backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-            content: I18nText('patcherView.splitApkWarningDialogText'),
-            actions: <Widget>[
-              CustomMaterialButton(
-                label: I18nText('noButton'),
-                onPressed: () => Navigator.of(context).pop(),
-              ),
-              CustomMaterialButton(
-                label: I18nText('yesButton'),
-                isFilled: false,
-                onPressed: () {
-                  Navigator.of(context).pop();
-                  showArmv7WarningDialog(context);
-                },
-              ),
-            ],
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> showRemovedPatchesDialog(BuildContext context) async {
+  bool showRemovedPatchesDialog(BuildContext context) {
     if (removedPatches.isNotEmpty) {
-      return showDialog(
+      showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: I18nText('notice'),
+          title: Text(t.notice),
           backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-          content: I18nText(
-            'patcherView.removedPatchesWarningDialogText',
-            translationParams: {'patches': removedPatches.join('\n')},
+          content: Text(
+            t.patcherView.removedPatchesWarningDialogText(
+              patches: removedPatches.join('\n'),
+            ),
           ),
           actions: <Widget>[
             CustomMaterialButton(
               isFilled: false,
-              label: I18nText('noButton'),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-            CustomMaterialButton(
-              label: I18nText('yesButton'),
+              label: Text(t.noButton),
               onPressed: () {
                 Navigator.of(context).pop();
-                navigateToInstaller();
+              },
+            ),
+            CustomMaterialButton(
+              label: Text(t.yesButton),
+              onPressed: () {
+                Navigator.of(context).pop();
+                showArmv7WarningDialog(context);
               },
             ),
           ],
         ),
       );
-    } else {
-      showArmv7WarningDialog(context);
+      return false;
     }
+    return true;
+  }
+
+  bool checkRequiredPatchOption(BuildContext context) {
+    if (getNullRequiredOptions(selectedPatches, selectedApp!.packageName)
+        .isNotEmpty) {
+      showRequiredOptionDialog(context);
+      return false;
+    }
+    return true;
+  }
+
+  void showRequiredOptionDialog([context]) {
+    showDialog(
+      context: context ?? ctx,
+      builder: (context) => AlertDialog(
+        title: Text(t.notice),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        content: Text(t.patcherView.requiredOptionDialogText),
+        actions: <Widget>[
+          CustomMaterialButton(
+            isFilled: false,
+            label: Text(t.cancelButton),
+            onPressed: () => {
+              Navigator.of(context).pop(),
+            },
+          ),
+          CustomMaterialButton(
+            label: Text(t.okButton),
+            onPressed: () => {
+              Navigator.pop(context),
+              navigateToPatchesSelector(),
+            },
+          ),
+        ],
+      ),
+    );
   }
 
   Future<void> showArmv7WarningDialog(BuildContext context) async {
@@ -129,16 +126,16 @@ class PatcherViewModel extends BaseViewModel {
       return showDialog(
         context: context,
         builder: (context) => AlertDialog(
-          title: I18nText('warning'),
+          title: Text(t.warning),
           backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
-          content: I18nText('patcherView.armv7WarningDialogText'),
+          content: Text(t.patcherView.armv7WarningDialogText),
           actions: <Widget>[
             CustomMaterialButton(
-              label: I18nText('noButton'),
+              label: Text(t.noButton),
               onPressed: () => Navigator.of(context).pop(),
             ),
             CustomMaterialButton(
-              label: I18nText('yesButton'),
+              label: Text(t.yesButton),
               isFilled: false,
               onPressed: () {
                 Navigator.of(context).pop();
@@ -165,29 +162,20 @@ class PatcherViewModel extends BaseViewModel {
     String suggestedVersion =
         _patcherAPI.getSuggestedVersion(selectedApp!.packageName);
     if (suggestedVersion.isEmpty) {
-      suggestedVersion = FlutterI18n.translate(
-        context,
-        'appSelectorCard.allVersions',
-      );
+      suggestedVersion = t.appSelectorCard.allVersions;
     } else {
       suggestedVersion = 'v$suggestedVersion';
     }
-    return '${FlutterI18n.translate(
-      context,
-      'appSelectorCard.currentVersion',
-    )}: v${selectedApp!.version}\n${FlutterI18n.translate(
-      context,
-      'appSelectorCard.suggestedVersion',
-    )}: $suggestedVersion';
+    return '${t.appSelectorCard.currentVersion}: v${selectedApp!.version}\n${t.appSelectorCard.suggestedVersion}: $suggestedVersion';
   }
 
   Future<void> loadLastSelectedPatches() async {
     this.selectedPatches.clear();
     removedPatches.clear();
     final List<String> selectedPatches =
-        await _managerAPI.getSelectedPatches(selectedApp!.originalPackageName);
+        await _managerAPI.getSelectedPatches(selectedApp!.packageName);
     final List<Patch> patches =
-        _patcherAPI.getFilteredPatches(selectedApp!.originalPackageName);
+        _patcherAPI.getFilteredPatches(selectedApp!.packageName);
     this
         .selectedPatches
         .addAll(patches.where((patch) => selectedPatches.contains(patch.name)));
@@ -195,7 +183,7 @@ class PatcherViewModel extends BaseViewModel {
       this.selectedPatches.clear();
       this.selectedPatches.addAll(patches.where((patch) => !patch.excluded));
     }
-    if (!_managerAPI.areExperimentalPatchesEnabled()) {
+    if (_managerAPI.isVersionCompatibilityCheckEnabled()) {
       this.selectedPatches.removeWhere((patch) => !isPatchSupported(patch));
     }
     if (!_managerAPI.areUniversalPatchesEnabled()) {
@@ -203,10 +191,17 @@ class PatcherViewModel extends BaseViewModel {
           .selectedPatches
           .removeWhere((patch) => patch.compatiblePackages.isEmpty);
     }
-    final usedPatches = _managerAPI.getUsedPatches(selectedApp!.originalPackageName);
-    for (final patch in usedPatches){
-      if (!patches.any((p) => p.name == patch.name)){
-        removedPatches.add('\u2022 ${patch.name}');
+    final usedPatches = _managerAPI.getUsedPatches(selectedApp!.packageName);
+    for (final patch in usedPatches) {
+      if (!patches.any((p) => p.name == patch.name)) {
+        removedPatches.add('• ${patch.name}');
+        for (final option in patch.options) {
+          _managerAPI.clearPatchOption(
+            selectedApp!.packageName,
+            patch.name,
+            option.key,
+          );
+        }
       }
     }
     notifyListeners();

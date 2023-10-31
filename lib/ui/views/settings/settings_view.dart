@@ -1,13 +1,14 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:flutter/material.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:revanced_manager/gen/strings.g.dart';
+import 'package:revanced_manager/ui/views/settings/settingsFragment/settings_update_language.dart';
 import 'package:revanced_manager/ui/views/settings/settingsFragment/settings_update_theme.dart';
 import 'package:revanced_manager/ui/views/settings/settings_viewmodel.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/settings_advanced_section.dart';
+import 'package:revanced_manager/ui/widgets/settingsView/settings_debug_section.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/settings_export_section.dart';
-import 'package:revanced_manager/ui/widgets/settingsView/settings_info_section.dart';
 import 'package:revanced_manager/ui/widgets/settingsView/settings_team_section.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_sliver_app_bar.dart';
 import 'package:stacked/stacked.dart';
@@ -27,29 +28,34 @@ class SettingsView extends StatelessWidget {
           slivers: <Widget>[
             CustomSliverAppBar(
               isMainView: true,
-              title: I18nText(
-                'settingsView.widgetTitle',
-                child: Text(
-                  '',
-                  style: GoogleFonts.inter(
-                    color: Theme.of(context).textTheme.titleLarge!.color,
-                  ),
+              title: Text(
+                t.settingsView.widgetTitle,
+                style: GoogleFonts.inter(
+                  color: Theme.of(context).textTheme.titleLarge!.color,
                 ),
               ),
             ),
             SliverList(
               delegate: SliverChildListDelegate.fixed(
                 <Widget>[
-                  SUpdateThemeUI(),
-                  // SUpdateLanguageUI(),
-                  // _settingsDivider,
-                  STeamSection(),
-                  _settingsDivider,
-                  SAdvancedSection(),
-                  _settingsDivider,
-                  SExportSection(),
-                  _settingsDivider,
-                  SInfoSection(),
+                  ListView(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: NeverScrollableScrollPhysics(),
+                    children: const [
+                      SUpdateThemeUI(),
+                      // _settingsDivider,
+                      SUpdateLanguageUI(),
+                      _settingsDivider,
+                      SAdvancedSection(),
+                      _settingsDivider,
+                      SExportSection(),
+                      _settingsDivider,
+                      STeamSection(),
+                      _settingsDivider,
+                      SDebugSection(),
+                    ],
+                  ),
                 ],
               ),
             ),

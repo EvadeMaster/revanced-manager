@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_cache_manager/file.dart';
-import 'package:flutter_cache_manager/flutter_cache_manager.dart';
-import 'package:flutter_i18n/flutter_i18n.dart';
+import 'package:revanced_manager/services/download_manager.dart';
 import 'package:revanced_manager/ui/widgets/shared/custom_card.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -26,14 +25,11 @@ class _ContributorsCardState extends State<ContributorsCard> {
       children: <Widget>[
         Padding(
           padding: const EdgeInsets.only(bottom: 8.0),
-          child: I18nText(
+          child: Text(
             widget.title,
-            child: const Text(
-              '',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.w500,
-              ),
+            style: const TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ),
@@ -58,7 +54,7 @@ class _ContributorsCardState extends State<ContributorsCard> {
                   mode: LaunchMode.externalApplication,
                 ),
                 child: FutureBuilder<File?>(
-                  future: DefaultCacheManager().getSingleFile(
+                  future: DownloadManager().getSingleFile(
                     widget.contributors[index]['avatar_url'],
                   ),
                   builder: (context, snapshot) => snapshot.hasData
