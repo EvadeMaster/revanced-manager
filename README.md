@@ -4,7 +4,7 @@
   <img alt="" src="https://raw.githubusercontent.com/validcube/validcube/main/assets/ReVancedManager/legacy/incubator-light.webp">
 </picture>
 
-Go to https://192.168.1.35
+Go to https://192.168.1.35/ Forgejo instance under ReVanced category.
 
 # RVMF
 
